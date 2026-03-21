@@ -15,10 +15,14 @@ snomed_to_label = {
 }
 
 # Base directory
-base_dir = "../../../common/Project_Arrhythmia/datasets/physionet.org/files/challenge-2020/1.0.2/training/cpsc_2018/"
+# base_dir = "../../../common/Project_Arrhythmia/datasets/physionet.org/files/challenge-2020/1.0.2/training/cpsc_2018/"
+
+base_dir = "/home/g6/cpsc_2018_data/"
+
 groups = [f"g{i}" for i in range(1, 8)]  # g1 to g7
 output_csv = "cpsc_ecg_data_3.csv"
-
+# output_csv = "/root/tiny_arrhythmia_classification/csv_files/cpsc_ecg_data_3.csv"
+output_csv = "/home/g6/tiny_arrhythmia_classification/csv_files/cpsc_ecg_data_3.csv"
 # List to store extracted data
 data = []
 
@@ -59,10 +63,17 @@ print(f"CSV file saved: {output_csv}")
 
 import pandas as pd
 
-df = pd.read_csv("cpsc_ecg_data_3.csv")
+# df = pd.read_csv("cpsc_ecg_data_3.csv")
+
+# # Exploding multi-labels
+# df["classes"] = df["classes"].str.split(" ")  # Convert to list
+# df = df.explode("classes").reset_index(drop=True)  # Explode multi-labels
+
+# df.to_csv("cpsc_ecg_data_3.csv")
+df = pd.read_csv(output_csv)
 
 # Exploding multi-labels
 df["classes"] = df["classes"].str.split(" ")  # Convert to list
 df = df.explode("classes").reset_index(drop=True)  # Explode multi-labels
 
-df.to_csv("cpsc_ecg_data_3.csv")
+df.to_csv(output_csv, index=False)

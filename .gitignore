@@ -1,0 +1,17 @@
+__pycache__/
+
+*.pyc
+
+data/
+
+models/final/
+
+models/checkpoints/
+
+confusion_matrix_*.png
+
+precision_recall_*.png
+
+mlruns/
+
+csv_files/

@@ -38,7 +38,9 @@ class DataGenerator(tf.keras.utils.Sequence):
         signal_processor = SignalProcessor(sampling_rate=self.sampling_rate, target_length=self.target_length, lead_mode=self.lead_mode, desired_lead=self.desired_lead)
 
         for idx in batch_indices:
-            file_path = DATASET_PATH + self.df.iloc[idx]['file_path']
+            # file_path = DATASET_PATH + self.df.iloc[idx]['file_path']
+            # file_path = DATASET_PATH + self.df.iloc[idx]['file_path']
+            file_path = self.df.iloc[idx]['file_path']
             
             # Load raw signal using RawSignalLoader
             raw_loader = RawSignalLoader(file_path=file_path, lead_mode=self.lead_mode, desired_lead=self.desired_lead)
