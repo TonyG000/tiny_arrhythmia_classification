@@ -1,7 +1,7 @@
 # config.py
 
 # Model Selection
-MODEL_NAME = "EnhancedCNNModel"  # Options: EnhancedCNNModel, ResNet1DModel
+MODEL_NAME = "CNNTransformerModel"  # Options: EnhancedCNNModel, ResNet1DModel
 
 # # MLflow
 # ENABLE_MLFLOW = True
