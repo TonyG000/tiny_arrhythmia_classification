@@ -5,7 +5,14 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import numpy as np
 import tensorflow as tf
 import pickle
-from sklearn.metrics import confusion_matrix, classification_report, roc_auc_score
+from sklearn.metrics import (
+    confusion_matrix,
+    classification_report,
+    roc_auc_score,
+    precision_score,
+    recall_score,
+    f1_score,
+)
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -13,7 +20,7 @@ from data_processing.data_generator import DataGenerator
 from utils.model_selector import get_model  # Import the get_model function
 from utils.utils import input_length, num_channels, num_classes, model_results_path
 import mlflow
-from config import ENABLE_MLFLOW, MLFLOW_URI, EXPERIMENT_NAME, RUN_NAME, MODEL_NAME,LEARNING_RATE,IMAGE_DUMP # Import MODEL_NAME
+from config import ENABLE_MLFLOW, MLFLOW_URI, EXPERIMENT_NAME, RUN_NAME, MODEL_NAME, LEARNING_RATE, IMAGE_DUMP  # Import MODEL_NAME
 
 # MLflow setup
 if ENABLE_MLFLOW:
@@ -50,7 +57,7 @@ model = get_model(MODEL_NAME, input_shape, num_classes)
 model_class_name = model.name  # TensorFlow models usually have a 'name' attribute
 
 # Load the saved weights (from the checkpoint saved during training)
-checkpoint_path = f"models/checkpoints/{MODEL_NAME}_best.h5" # Assuming your checkpoint path uses MODEL_NAME
+checkpoint_path = f"models/checkpoints/CNNTransformerModel_best.h5"  # Assuming your checkpoint path uses MODEL_NAME
 #checkpoint_path  = "../../../../common/Project_Arrhythmia/110642159774068834/3ff31e2c1f854e8288d05e393ad985ef/artifacts/EnhancedCNNModel.h5"
 
 model.load_weights(checkpoint_path)
@@ -78,7 +85,7 @@ if ENABLE_MLFLOW:
         misclassified_samples = []
 
         # Directory to save misclassified samples
-        misclassified_dir = os.path.join(model_results_path, f"misclassified_samples_{MODEL_NAME}_60sec") # Using MODEL_NAME in directory
+        misclassified_dir = os.path.join(model_results_path, f"misclassified_samples_{MODEL_NAME}_60sec")  # Using MODEL_NAME in directory
         os.makedirs(misclassified_dir, exist_ok=True)
 
         # Get the true labels and predictions
@@ -106,7 +113,7 @@ if ENABLE_MLFLOW:
                         'Predicted_label': predicted_label
                     })
 
-                    if(IMAGE_DUMP == 1):
+                    if IMAGE_DUMP == 1:
                         # Define the filename
                         filename = f"sample_{batch_index * test_generator.batch_size + i}_true_{true_label}_pred_{predicted_label}.png"
                         filepath = os.path.join(misclassified_dir, filename)
@@ -144,7 +151,6 @@ if ENABLE_MLFLOW:
 
                         print(f"Saved misclassified ECG plot: {filepath}")
 
-
         # Convert y_true and y_pred to numpy arrays
         y_true = np.array(y_true)
         y_pred_classes = np.array(y_pred)
@@ -159,10 +165,14 @@ if ENABLE_MLFLOW:
         # Classification Report
         report = classification_report(y_true, y_pred_classes, target_names=label_encoder.classes_)
         print(report)
-        # Plot and save the heatmap for the raw confusion matrix
+
+        raw_vmax = int(cm.sum(axis=1).max())
         plt.figure(figsize=(10, 7))
-        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_)
-        plt.title(f"{model_class_name} Confusion Matrix (Raw)")
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+                    vmin=0, vmax=raw_vmax,
+                    xticklabels=label_encoder.classes_,
+                    yticklabels=label_encoder.classes_)
+        plt.title(f"{model_class_name} Confusion Matrix (Raw counts, scale 0–{raw_vmax})")
         plt.xlabel("Predicted Labels")
         plt.ylabel("True Labels")
         plt.tight_layout()
@@ -171,13 +181,14 @@ if ENABLE_MLFLOW:
         if ENABLE_MLFLOW:
             mlflow.log_artifact(f"{model_results_path}/{model_class_name}_confusion_matrix_raw.png")
 
-        # Normalize the confusion matrix
         cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
-        # Plot and save the heatmap for the normalized confusion matrix
         plt.figure(figsize=(10, 7))
-        sns.heatmap(cm_normalized, annot=True, fmt=".2f", cmap="Blues", xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_)
-        plt.title(f"{model_class_name} Confusion Matrix (Normalized)")
+        sns.heatmap(cm_normalized, annot=True, fmt=".2f", cmap="Blues",
+                    vmin=0, vmax=1,
+                    xticklabels=label_encoder.classes_,
+                    yticklabels=label_encoder.classes_)
+        plt.title(f"{model_class_name} Confusion Matrix (Normalized, scale 0–1)")
         plt.xlabel("Predicted Labels")
         plt.ylabel("True Labels")
         plt.tight_layout()
@@ -185,7 +196,6 @@ if ENABLE_MLFLOW:
         plt.close()
         if ENABLE_MLFLOW:
             mlflow.log_artifact(f"{model_results_path}/{model_class_name}_confusion_matrix_normalized.png")
-
 
         # Save classification report
         classification_report_path = os.path.join(model_results_path, "classification_report.txt")
@@ -201,7 +211,45 @@ if ENABLE_MLFLOW:
         if ENABLE_MLFLOW:
             mlflow.log_artifact(misclassified_samples_path)
 
-         # Predict probabilities
+        # ----------------------------
+        # Precision, Recall, F1 Scores
+        # ----------------------------
+        precision_macro = precision_score(y_true, y_pred_classes, average="macro", zero_division=0)
+        recall_macro = recall_score(y_true, y_pred_classes, average="macro", zero_division=0)
+        f1_macro = f1_score(y_true, y_pred_classes, average="macro", zero_division=0)
+
+        precision_weighted = precision_score(y_true, y_pred_classes, average="weighted", zero_division=0)
+        recall_weighted = recall_score(y_true, y_pred_classes, average="weighted", zero_division=0)
+        f1_weighted = f1_score(y_true, y_pred_classes, average="weighted", zero_division=0)
+
+        print(f"Precision (macro):    {precision_macro:.6f}")
+        print(f"Recall    (macro):    {recall_macro:.6f}")
+        print(f"F1-score  (macro):    {f1_macro:.6f}")
+        print(f"Precision (weighted): {precision_weighted:.6f}")
+        print(f"Recall    (weighted): {recall_weighted:.6f}")
+        print(f"F1-score  (weighted): {f1_weighted:.6f}")
+
+        mlflow.log_metric("precision_macro", float(precision_macro))
+        mlflow.log_metric("recall_macro", float(recall_macro))
+        mlflow.log_metric("f1_macro", float(f1_macro))
+        mlflow.log_metric("precision_weighted", float(precision_weighted))
+        mlflow.log_metric("recall_weighted", float(recall_weighted))
+        mlflow.log_metric("f1_weighted", float(f1_weighted))
+
+        # Save metrics summary to file
+        metrics_summary_path = os.path.join(model_results_path, "metrics_summary.txt")
+        with open(metrics_summary_path, "w") as f:
+            f.write(f"test_loss: {test_loss:.6f}\n")
+            f.write(f"test_accuracy: {test_acc:.6f}\n")
+            f.write(f"precision_macro: {precision_macro:.6f}\n")
+            f.write(f"recall_macro: {recall_macro:.6f}\n")
+            f.write(f"f1_macro: {f1_macro:.6f}\n")
+            f.write(f"precision_weighted: {precision_weighted:.6f}\n")
+            f.write(f"recall_weighted: {recall_weighted:.6f}\n")
+            f.write(f"f1_weighted: {f1_weighted:.6f}\n")
+        mlflow.log_artifact(metrics_summary_path)
+
+        # Predict probabilities
         y_pred_prob = model.predict(test_generator, batch_size=32)  # Adjust batch_size as needed
 
         # Compute AUC scores
@@ -234,13 +282,63 @@ else:
     # Basic evaluation without MLflow logging for plots
     y_true = np.concatenate([y for x, y in test_generator], axis=0)
     y_pred = np.argmax(model.predict(test_generator), axis=1)
+
     # You can still generate and save plots locally if needed
     cm = confusion_matrix(y_true, y_pred)
+    raw_vmax = int(cm.sum(axis=1).max())
     plt.figure(figsize=(10, 7))
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_)
-    plt.title(f"{model.name} Test Confusion Matrix (Local)")
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+                vmin=0, vmax=raw_vmax,
+                xticklabels=label_encoder.classes_,
+                yticklabels=label_encoder.classes_)
+    plt.title(f"{model.name} Test Confusion Matrix (Raw counts, scale 0–{raw_vmax})")
     plt.xlabel("Predicted Labels")
     plt.ylabel("True Labels")
     plt.tight_layout()
     plt.savefig(f"{model_results_path}/{model.name}_test_confusion_matrix_local.png")
     plt.close()
+
+    cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+    plt.figure(figsize=(10, 7))
+    sns.heatmap(cm_normalized, annot=True, fmt=".2f", cmap="Blues",
+                vmin=0, vmax=1,
+                xticklabels=label_encoder.classes_,
+                yticklabels=label_encoder.classes_)
+    plt.title(f"{model.name} Test Confusion Matrix (Normalized, scale 0–1)")
+    plt.xlabel("Predicted Labels")
+    plt.ylabel("True Labels")
+    plt.tight_layout()
+    plt.savefig(f"{model_results_path}/{model.name}_test_confusion_matrix_normalized_local.png")
+    plt.close()
+
+    # ----------------------------
+    # Precision, Recall, F1 Scores (non-MLflow path)
+    # ----------------------------
+    precision_macro = precision_score(y_true, y_pred, average="macro", zero_division=0)
+    recall_macro = recall_score(y_true, y_pred, average="macro", zero_division=0)
+    f1_macro = f1_score(y_true, y_pred, average="macro", zero_division=0)
+
+    precision_weighted = precision_score(y_true, y_pred, average="weighted", zero_division=0)
+    recall_weighted = recall_score(y_true, y_pred, average="weighted", zero_division=0)
+    f1_weighted = f1_score(y_true, y_pred, average="weighted", zero_division=0)
+
+    print(f"Precision (macro):    {precision_macro:.6f}")
+    print(f"Recall    (macro):    {recall_macro:.6f}")
+    print(f"F1-score  (macro):    {f1_macro:.6f}")
+    print(f"Precision (weighted): {precision_weighted:.6f}")
+    print(f"Recall    (weighted): {recall_weighted:.6f}")
+    print(f"F1-score  (weighted): {f1_weighted:.6f}")
+
+    # Save metrics summary locally
+    metrics_summary_path = os.path.join(model_results_path, "metrics_summary.txt")
+    os.makedirs(model_results_path, exist_ok=True)
+    with open(metrics_summary_path, "w") as f:
+        f.write(f"test_loss: {test_loss:.6f}\n")
+        f.write(f"test_accuracy: {test_acc:.6f}\n")
+        f.write(f"precision_macro: {precision_macro:.6f}\n")
+        f.write(f"recall_macro: {recall_macro:.6f}\n")
+        f.write(f"f1_macro: {f1_macro:.6f}\n")
+        f.write(f"precision_weighted: {precision_weighted:.6f}\n")
+        f.write(f"recall_weighted: {recall_weighted:.6f}\n")
+        f.write(f"f1_weighted: {f1_weighted:.6f}\n")
+    print(f"Metrics saved to: {metrics_summary_path}")
