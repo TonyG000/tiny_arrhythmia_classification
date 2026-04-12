@@ -2,6 +2,7 @@
 
 # Model Selection
 MODEL_NAME = "CNNTransformerModel"  # Options: EnhancedCNNModel, ResNet1DModel
+# MODEL_NAME = "EnhancedCNNModel"  # Options: EnhancedCNNModel, ResNet1DModel
 
 # # MLflow
 # ENABLE_MLFLOW = True
@@ -28,6 +29,8 @@ CSV_FILENAME = "cpsc_ecg_data_3.csv"
 # Training Settings
 EPOCHS = 100
 LEARNING_RATE = 0.001
+LOSS_TYPE = "focal"   # "weighted_ce" or "focal"
+FOCAL_GAMMA = 2.0
 MODEL_SAVE_PATH = "models/final"
 CHECKPOINT_PATH = "models/checkpoints/{}_best.h5".format(MODEL_NAME)
 BATCH_SIZE  = 32

@@ -13,9 +13,11 @@ from sklearn.utils.class_weight import compute_class_weight
 from sklearn.metrics import confusion_matrix, precision_recall_curve
 
 from config import (
-    MODEL_NAME, ENABLE_MLFLOW, MLFLOW_URI, EXPERIMENT_NAME, RUN_NAME, 
-    EPOCHS, LEARNING_RATE, MODEL_SAVE_PATH, CHECKPOINT_PATH,CSV_FILENAME
+    MODEL_NAME, ENABLE_MLFLOW, MLFLOW_URI, EXPERIMENT_NAME, RUN_NAME,
+    EPOCHS, LEARNING_RATE, MODEL_SAVE_PATH, CHECKPOINT_PATH, CSV_FILENAME,
+    LOSS_TYPE, FOCAL_GAMMA
 )
+from models.focal_loss import SparseCategoricalFocalLoss
 from utils.utils import (
     arrhythmia_classes_cpsc, samples_limit, input_length, 
     num_channels, num_classes
@@ -114,9 +116,14 @@ class_weight_dict = {i: class_weights[i] for i in range(len(class_weights))}
 # Model initialization via selector
 model = get_model(MODEL_NAME, (input_length, num_channels), num_classes)
 
+if LOSS_TYPE == "focal":
+    loss_fn = SparseCategoricalFocalLoss(gamma=FOCAL_GAMMA, class_weight=list(class_weights))
+else:
+    loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
+
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+    loss=loss_fn,
     metrics=["accuracy"]
 )
 
@@ -146,9 +153,11 @@ if ENABLE_MLFLOW:
             if os.path.exists(fname):
                 mlflow.log_artifact(fname)
 
-        model.fit(train_gen, validation_data=val_gen, epochs=EPOCHS, callbacks=callbacks, class_weight=class_weight_dict)
+        fit_kwargs = {"class_weight": class_weight_dict} if LOSS_TYPE == "weighted_ce" else {}
+        model.fit(train_gen, validation_data=val_gen, epochs=EPOCHS, callbacks=callbacks, **fit_kwargs)
         model.save(os.path.join(MODEL_SAVE_PATH, f"{MODEL_NAME}.h5"))
         mlflow.log_artifact(os.path.join(MODEL_SAVE_PATH, f"{MODEL_NAME}.h5"))
 else:
-    model.fit(train_gen, validation_data=val_gen, epochs=EPOCHS, callbacks=callbacks, class_weight=class_weight_dict)
+    fit_kwargs = {"class_weight": class_weight_dict} if LOSS_TYPE == "weighted_ce" else {}
+    model.fit(train_gen, validation_data=val_gen, epochs=EPOCHS, callbacks=callbacks, **fit_kwargs)
     model.save(os.path.join(MODEL_SAVE_PATH, f"{MODEL_NAME}.h5"))
