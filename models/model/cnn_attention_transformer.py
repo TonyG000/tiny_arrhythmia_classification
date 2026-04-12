@@ -71,7 +71,7 @@ class CNNTransformerModel:
         # Attention Mechanism (identical to baseline)
         attention = layers.Conv1D(128, 1, strides=1, activation='sigmoid')(x)
         x = layers.Multiply()([x, attention])
-        x = layers.MaxPooling1D(2, strides=2, padding='same')(x)
+        x = layers.MaxPooling1D(2, strides=2, padding='same', name='gradcam_target')(x)
         x = layers.Dropout(0.4)(x)
 
         # Transformer Encoder (replaces BiLSTM)
