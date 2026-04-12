@@ -57,7 +57,7 @@ model = get_model(MODEL_NAME, input_shape, num_classes)
 model_class_name = model.name  # TensorFlow models usually have a 'name' attribute
 
 # Load the saved weights (from the checkpoint saved during training)
-checkpoint_path = f"models/checkpoints/CNNTransformerModel_best.h5"  # Assuming your checkpoint path uses MODEL_NAME
+checkpoint_path = f"models/checkpoints/{MODEL_NAME}_best.h5"
 #checkpoint_path  = "../../../../common/Project_Arrhythmia/110642159774068834/3ff31e2c1f854e8288d05e393ad985ef/artifacts/EnhancedCNNModel.h5"
 
 model.load_weights(checkpoint_path)

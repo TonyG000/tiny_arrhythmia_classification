@@ -72,7 +72,7 @@ class EnhancedCNNModel:
         outputs = layers.Dense(self.num_classes, activation='softmax')(x)
 
         # Build the model
-        model = models.Model(inputs=inputs, outputs=outputs)
+        model = models.Model(inputs=inputs, outputs=outputs, name="CNN_BiLSTM")
 
         # Compile the model with Adam optimizer and gradient clipping
         optimizer = Adam(learning_rate=self.learning_rate, clipvalue=1.0)

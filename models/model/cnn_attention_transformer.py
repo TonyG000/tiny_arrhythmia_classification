@@ -86,7 +86,7 @@ class CNNTransformerModel:
         x = layers.Dropout(0.4)(x)
         outputs = layers.Dense(self.num_classes, activation='softmax')(x)
 
-        model = models.Model(inputs=inputs, outputs=outputs)
+        model = models.Model(inputs=inputs, outputs=outputs, name="CNN_Transformer")
         optimizer = Adam(learning_rate=self.learning_rate, clipvalue=1.0)
         model.compile(
             optimizer=optimizer,
