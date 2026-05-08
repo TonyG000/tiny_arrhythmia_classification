@@ -1,8 +1,9 @@
 # config.py
 
 # Model Selection
-MODEL_NAME = "CNNTransformerModel"  # Options: EnhancedCNNModel, ResNet1DModel
-# MODEL_NAME = "EnhancedCNNModel"  # Options: EnhancedCNNModel, ResNet1DModel
+# MODEL_NAME = "EnsembleModel"        # Feature-level fusion: CNN-BiLSTM + CNN-Transformer
+MODEL_NAME = "CNNTransformerModel"
+# MODEL_NAME = "EnhancedCNNModel"
 
 # # MLflow
 # ENABLE_MLFLOW = True
@@ -46,8 +47,23 @@ LEAD_MODE = "multi"  # or "single"
 # Use only if LEAD_MODE is "single"
 DESIRED_LEAD = 1  # Lead number (1 to 12)
 
-# Image or ECG signal Dump 
+# Image or ECG signal Dump
 IMAGE_DUMP = 0
+
+# Random Lead Masking (training augmentation for wearable generalization)
+# Every training sample is randomly assigned 1, 3, or 12 active leads.
+LEAD_MASKING = True
+
+# Rare-class augmentation (applied only on training, only to rare-class samples)
+# Goal: improve PR curves on under-represented classes (LBBB, STE).
+RARE_CLASS_AUG = True
+RARE_CLASSES = ["LBBB", "STE"]
+# Oversample rare classes up to the median count of the remaining train classes.
+# Each duplicated sample is regenerated with noise + time shift each epoch so
+# duplicates are not identical.
+RARE_OVERSAMPLE_TO_MEDIAN = True
+RARE_AUG_NOISE_STD = 0.02      # fraction of signal std added as Gaussian noise
+RARE_AUG_MAX_SHIFT_FRAC = 0.05  # max circular shift as fraction of signal length
 
 
 

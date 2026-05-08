@@ -1,0 +1,39 @@
+COMPARATIVE ANALYSIS — all model variants on the same test set (n=9 classes)
+==============================================================================================================
+
+Model                                           Acc    M-Rec     M-F1
+----------------------------------------------------------------------
+CNN-BiLSTM (baseline)                        0.7446   0.7252   0.7085
+CNN-Transformer (original)                   0.7935   0.7958   0.7611
+CNN-Transformer (tuned)                      0.7745   0.7644   0.7416
+CNN-Transformer (tuned + lead-masked)        0.7962   0.7973   0.7721
+CNN-BiLSTM-Transformer Ensemble              0.7867   0.7812   0.7570
+
+Per-class F1:
+Model                                          AF   IAVB   LBBB    PAC    PVC   RBBB    SNR    STD    STE
+---------------------------------------------------------------------------------------------------------
+CNN-BiLSTM (baseline)                       0.769  0.797  0.690  0.543  0.789  0.830  0.688  0.729  0.542
+CNN-Transformer (original)                  0.856  0.853  0.741  0.667  0.780  0.822  0.791  0.825  0.515
+CNN-Transformer (tuned)                     0.833  0.818  0.792  0.604  0.771  0.814  0.767  0.783  0.492
+CNN-Transformer (tuned + lead-masked)       0.839  0.843  0.737  0.682  0.781  0.805  0.818  0.820  0.625
+CNN-BiLSTM-Transformer Ensemble             0.838  0.834  0.750  0.638  0.797  0.826  0.767  0.775  0.588
+
+Per-class Recall:
+Model                                          AF   IAVB   LBBB    PAC    PVC   RBBB    SNR    STD    STE
+---------------------------------------------------------------------------------------------------------
+CNN-BiLSTM (baseline)                       0.738  0.736  0.833  0.574  0.800  0.828  0.576  0.851  0.591
+CNN-Transformer (original)                  0.926  0.889  0.833  0.705  0.786  0.731  0.761  0.759  0.773
+CNN-Transformer (tuned)                     0.902  0.778  0.875  0.525  0.771  0.742  0.859  0.747  0.682
+CNN-Transformer (tuned + lead-masked)       0.877  0.819  0.875  0.721  0.814  0.720  0.804  0.862  0.682
+CNN-BiLSTM-Transformer Ensemble             0.869  0.875  0.875  0.607  0.843  0.763  0.804  0.713  0.682
+
+Best model per class (by F1):
+  AF      -> CNN-Transformer (original)  (F1=0.856)
+  IAVB    -> CNN-Transformer (original)  (F1=0.853)
+  LBBB    -> CNN-Transformer (tuned)  (F1=0.792)
+  PAC     -> CNN-Transformer (tuned + lead-masked)  (F1=0.682)
+  PVC     -> CNN-BiLSTM-Transformer Ensemble  (F1=0.797)
+  RBBB    -> CNN-BiLSTM (baseline)  (F1=0.830)
+  SNR     -> CNN-Transformer (tuned + lead-masked)  (F1=0.818)
+  STD     -> CNN-Transformer (original)  (F1=0.825)
+  STE     -> CNN-Transformer (tuned + lead-masked)  (F1=0.625)

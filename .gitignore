@@ -8,6 +8,8 @@ models/final/
 
 models/checkpoints/
 
+models/hp_tuning/
+
 confusion_matrix_*.png
 
 precision_recall_*.png

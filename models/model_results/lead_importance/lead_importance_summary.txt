@@ -1,0 +1,30 @@
+LEAD IMPORTANCE SUMMARY
+Model: CNNTransformerModel (tuned, lead-masked)
+============================================================
+
+Top-3 leads per class (by saliency / occlusion):
+  AF      saliency: ['V3', 'V4', 'V2']    occlusion: ['V1', 'V2', 'V5']
+  IAVB    saliency: ['V3', 'V2', 'II']    occlusion: ['V1', 'I', 'V2']
+  LBBB    saliency: ['V3', 'V2', 'V1']    occlusion: ['V2', 'V1', 'I']
+  PAC     saliency: ['V3', 'V1', 'V2']    occlusion: ['V1', 'aVR', 'V3']
+  PVC     saliency: ['V1', 'V2', 'V3']    occlusion: ['V1', 'aVL', 'aVF']
+  RBBB    saliency: ['V1', 'V3', 'V4']    occlusion: ['V1', 'II', 'I']
+  SNR     saliency: ['II', 'V3', 'V4']    occlusion: ['V1', 'V2', 'aVR']
+  STD     saliency: ['II', 'V4', 'V2']    occlusion: ['II', 'V1', 'V6']
+  STE     saliency: ['V4', 'V3', 'V2']    occlusion: ['V2', 'V1', 'V4']
+
+Overall lead ranking (combined saliency + occlusion):
+   1. V1    saliency=0.8868  occlusion=0.9173
+   2. V2    saliency=0.9006  occlusion=0.5078
+   3. V3    saliency=0.9513  occlusion=0.3295
+   4. V4    saliency=0.8893  occlusion=0.2844
+   5. II    saliency=0.7757  occlusion=0.3864
+   6. V5    saliency=0.7991  occlusion=0.2761
+   7. V6    saliency=0.7101  occlusion=0.2534
+   8. aVR   saliency=0.5822  occlusion=0.3497
+   9. I     saliency=0.5270  occlusion=0.3184
+  10. aVF   saliency=0.5027  occlusion=0.2907
+  11. III   saliency=0.4612  occlusion=0.2744
+  12. aVL   saliency=0.4038  occlusion=0.2937
+
+Recommended top-3 leads for wearable deployment: ['V1', 'V2', 'V3']

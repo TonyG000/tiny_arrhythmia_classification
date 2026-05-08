@@ -22,6 +22,23 @@ class TransformerEncoderBlock(layers.Layer):
         ffn_output = self.ffn(out1)
         ffn_output = self.dropout2(ffn_output, training=training)
         return self.layernorm2(out1 + ffn_output)
+    
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'embed_dim': self.att.key_dim * self.att.num_heads,
+            'num_heads': self.att.num_heads,
+            'ff_dim': self.ffn.layers[0].units,
+            'dropout': self.dropout1.rate,
+        })
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        config.pop('trainable', None)
+        config.pop('dtype', None)
+        config.pop('name', None)
+        return cls(**config)
 
 
 class CNNTransformerModel:

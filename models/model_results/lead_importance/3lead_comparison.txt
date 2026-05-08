@@ -1,0 +1,55 @@
+WEARABLE 3-LEAD COMPARISON
+Model: models/checkpoints/CNNTransformerModel_lead_masked_tuned_best.h5
+Wearable leads: ['V1', 'V2', 'V3']  (indices [6, 7, 8])
+============================================================
+
+Full 12-lead accuracy: 0.7962
+3-lead V1/V2/V3 accuracy: 0.7242
+Absolute drop: 0.0720 (9.04% relative)
+
+--- 12-LEAD CLASSIFICATION REPORT ---
+              precision    recall  f1-score   support
+
+          AF      0.805     0.877     0.839       122
+        IAVB      0.868     0.819     0.843        72
+        LBBB      0.636     0.875     0.737        24
+         PAC      0.647     0.721     0.682        61
+         PVC      0.750     0.814     0.781        70
+        RBBB      0.912     0.720     0.805       186
+         SNR      0.831     0.804     0.818        92
+         STD      0.781     0.862     0.820        87
+         STE      0.577     0.682     0.625        22
+
+    accuracy                          0.796       736
+   macro avg      0.756     0.797     0.772       736
+weighted avg      0.808     0.796     0.798       736
+
+
+--- 3-LEAD (V1/V2/V3) CLASSIFICATION REPORT ---
+              precision    recall  f1-score   support
+
+          AF      0.806     0.820     0.813       122
+        IAVB      0.803     0.736     0.768        72
+        LBBB      0.553     0.875     0.677        24
+         PAC      0.618     0.689     0.651        61
+         PVC      0.732     0.743     0.738        70
+        RBBB      0.897     0.704     0.789       186
+         SNR      0.606     0.652     0.628        92
+         STD      0.649     0.701     0.674        87
+         STE      0.433     0.591     0.500        22
+
+    accuracy                          0.724       736
+   macro avg      0.678     0.723     0.693       736
+weighted avg      0.743     0.724     0.729       736
+
+
+--- PER-CLASS F1 DELTA (12-lead -> 3-lead) ---
+  AF      12L=0.839  3L=0.813  Δ=-0.026
+  IAVB    12L=0.843  3L=0.768  Δ=-0.075
+  LBBB    12L=0.737  3L=0.677  Δ=-0.059
+  PAC     12L=0.682  3L=0.651  Δ=-0.031
+  PVC     12L=0.781  3L=0.738  Δ=-0.043
+  RBBB    12L=0.805  3L=0.789  Δ=-0.016
+  SNR     12L=0.818  3L=0.628  Δ=-0.189
+  STD     12L=0.820  3L=0.674  Δ=-0.146
+  STE     12L=0.625  3L=0.500  Δ=-0.125

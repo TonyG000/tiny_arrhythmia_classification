@@ -3,7 +3,6 @@ import os
 # Set GPU visibility (if using GPU)
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import pickle
-import mlflow
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,8 +14,10 @@ from sklearn.metrics import confusion_matrix, precision_recall_curve
 from config import (
     MODEL_NAME, ENABLE_MLFLOW, MLFLOW_URI, EXPERIMENT_NAME, RUN_NAME,
     EPOCHS, LEARNING_RATE, MODEL_SAVE_PATH, CHECKPOINT_PATH, CSV_FILENAME,
-    LOSS_TYPE, FOCAL_GAMMA
+    LOSS_TYPE, FOCAL_GAMMA,
+    RARE_CLASS_AUG, RARE_CLASSES, RARE_OVERSAMPLE_TO_MEDIAN,
 )
+import pandas as pd
 from models.focal_loss import SparseCategoricalFocalLoss
 from utils.utils import (
     arrhythmia_classes_cpsc, samples_limit, input_length, 
@@ -105,9 +106,32 @@ with open("data/test_data.pkl", "wb") as f:
 label_encoder = LabelEncoder()
 label_encoder.fit(data["classes"])
 
-# Data generators
-train_gen = DataGenerator(train_data, label_encoder)
-val_gen = DataGenerator(val_data, label_encoder)
+# Oversample rare classes in the TRAIN split only (val/test untouched).
+# Duplicates are regenerated each epoch with augmentation in DataGenerator,
+# so identical rows produce non-identical batches.
+if RARE_CLASS_AUG and RARE_OVERSAMPLE_TO_MEDIAN:
+    train_counts = train_data['classes'].value_counts()
+    non_rare = train_counts[~train_counts.index.isin(RARE_CLASSES)]
+    target = int(non_rare.median())
+    print(f"[rare-aug] Oversampling {RARE_CLASSES} to ~{target} per class.")
+    pieces = [train_data]
+    for cls in RARE_CLASSES:
+        cls_subset = train_data[train_data['classes'] == cls]
+        n_needed = target - len(cls_subset)
+        if n_needed > 0:
+            pieces.append(cls_subset.sample(n=n_needed, replace=True, random_state=42))
+            print(f"[rare-aug]   {cls}: {len(cls_subset)} -> {len(cls_subset) + n_needed}")
+    train_data = pd.concat(pieces, ignore_index=True)
+
+# Data generators — augment=True enables Random Lead Masking during training
+rare_class_indices = (
+    set(label_encoder.transform(RARE_CLASSES).tolist()) if RARE_CLASS_AUG else set()
+)
+train_gen = DataGenerator(
+    train_data, label_encoder, augment=True,
+    rare_class_indices=rare_class_indices,
+)
+val_gen = DataGenerator(val_data, label_encoder, augment=False)
 
 # Class weights
 class_weights = compute_class_weight('balanced', classes=np.unique(train_data['classes']), y=train_data['classes'])
@@ -137,6 +161,7 @@ callbacks = [
 
 # MLflow training
 if ENABLE_MLFLOW:
+    import mlflow
     mlflow.set_tracking_uri(MLFLOW_URI)
     mlflow.set_experiment(EXPERIMENT_NAME)
     experiment = mlflow.get_experiment_by_name(EXPERIMENT_NAME)
