@@ -1,0 +1,33 @@
+Model: CNNTransformerModel
+Checkpoint: models/checkpoints/CNNTransformerModel_lead_masked_tuned_best.h5
+TTA passes: 7
+
+=== Average Precision ===
+class      single      TTA    delta
+AF         0.9111   0.9125  +0.0014
+IAVB       0.8874   0.8827  -0.0047
+LBBB       0.7492   0.7003  -0.0489
+PAC        0.7154   0.6775  -0.0380
+PVC        0.8869   0.8447  -0.0422
+RBBB       0.9262   0.9129  -0.0133
+SNR        0.9079   0.8959  -0.0120
+STD        0.8980   0.8875  -0.0105
+STE        0.6670   0.6483  -0.0188
+mAP        0.8388   0.8180  -0.0208
+
+=== Classification Report (TTA) ===
+              precision    recall  f1-score   support
+
+          AF     0.8125    0.8525    0.8320       122
+        IAVB     0.8529    0.8056    0.8286        72
+        LBBB     0.5938    0.7917    0.6786        24
+         PAC     0.6571    0.7541    0.7023        61
+         PVC     0.7468    0.8429    0.7919        70
+        RBBB     0.8912    0.7043    0.7868       186
+         SNR     0.7857    0.8370    0.8105        92
+         STD     0.7895    0.8621    0.8242        87
+         STE     0.6316    0.5455    0.5854        22
+
+    accuracy                         0.7894       736
+   macro avg     0.7512    0.7773    0.7600       736
+weighted avg     0.7986    0.7894    0.7897       736
